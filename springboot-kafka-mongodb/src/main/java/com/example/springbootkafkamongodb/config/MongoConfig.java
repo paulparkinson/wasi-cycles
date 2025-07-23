@@ -22,7 +22,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     
     private static final Logger logger = LoggerFactory.getLogger(MongoConfig.class);
     
-    @Value("${mongodb.oracle.uri:mongodb://admin:Welcome12345*@IJ1TYZIR3WPWLPE-FINANCIALDB.adb.eu-frankfurt-1.oraclecloudapps.com:27017/admin?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true}")
+    @Value("${mongodb.oracle.uri:mongodb://admin:mypassword@IMINELPE-MYDB.adb.eu-frankfurt-1.oraclecloudapps.com:27017/admin?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true}")
     private String mongoUri;
     
     @Override

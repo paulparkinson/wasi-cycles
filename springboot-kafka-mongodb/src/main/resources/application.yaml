@@ -45,7 +45,7 @@ app:
     ords:
       base-url: https://ijminewlpe-mydb.adb.eu-frankfurt-1.oraclecloudapps.com/ords/admin/_sdw
       username: ADMIN
-      password: Welcome12345*
+      password: mypassword
 
     # TxEventQ REST API Configuration
     txeventq:
