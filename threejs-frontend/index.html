@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WasiCycles - Cross-Runtime WASM Light Cycle Game</title>
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            background: 
+                radial-gradient(circle at 25% 25%, #041434 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #052452 0%, transparent 50%),
+                linear-gradient(0deg, #000000 0%, #011029 100%);
+            color: #00ccff;
+        }
+        
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border: 3px solid #00ccff;
+            box-sizing: border-box;
+        }
+        
+        .game-header {
+            height: 80px;
+            background: linear-gradient(90deg, #001122, #002244, #001122);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 2px solid #00ccff;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ccff;
+        }
+        
+        .game-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .game-board {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-right: 2px solid #00ccff;
+            background: rgba(0, 12, 24, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        #game-canvas {
+            border: 2px solid #00ccff;
+            box-shadow: 0 0 20px rgba(0, 204, 255, 0.3);
+            background: #000011;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .control-panel {
+            width: 300px;
+            background: rgba(0, 12, 24, 0.7);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #00ccff;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #00ccff;
+        }
+        
+        .runtime-status {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        
+        .status-online {
+            color: #00ccff;
+        }
+        
+        .status-offline {
+            color: #ff3366;
+        }
+        
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        input, select, button {
+            background: #001529;
+            border: 1px solid #00ccff;
+            color: #00ccff;
+            padding: 8px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        button {
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #002a55;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .player-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        
+        .leaderboard {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #003366;
+        }
+        
+        th {
+            background: #001e3c;
+        }
+        
+        /* Game elements */
+        .cycle-segment {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.1s;
+        }
+        
+        .cycle-head {
+            border-radius: 3px;
+            box-shadow: 0 0 15px currentColor;
+        }
+        
+        .player-name-tag {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+            text-shadow: 0 0 5px currentColor;
+        }
+        
+        .power-cell {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid #aaccff;
+            box-shadow: 0 0 10px #aaccff, 0 0 15px #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="title">WasiCycles - Cross-Runtime WASM Light Cycle Game</div>
+            <div>Powered by: WasmEdge | Wasmer | Wasmtime</div>
+        </div>
+        <div class="game-content">
+            <div id="game-board" class="game-board">
+                <!-- Three.js Game Canvas -->
+                <canvas id="game-canvas"></canvas>
+            </div>
+            <div class="control-panel">
+                <div class="panel-section">
+                    <div class="panel-title">Runtime Status</div>
+                    <div class="runtime-status">
+                        <span>WasmEdge:</span>
+                        <span id="wasmedge-status" class="status-offline">Checking...</span>
+                    </div>
+                    <div class="runtime-status">
+                        <span>Wasmer:</span>
+                        <span id="wasmer-status" class="status-offline">Checking...</span>
+                    </div>
+                    <div class="runtime-status">
+                        <span>Wasmtime:</span>
+                        <span id="wasmtime-status" class="status-offline">Checking...</span>
+                    </div>
+                </div>
+                
+                <div class="panel-section player-controls">
+                    <div class="panel-title">Player Info</div>
+                    <input type="email" id="player-email" placeholder="Enter your email (for leaderboard)">
+                    <input type="text" id="player-name" placeholder="Enter your name">
+                    <select id="tshirt-size">
+                        <option value="XS">T-Shirt: XS</option>
+                        <option value="S">T-Shirt: S</option>
+                        <option value="M" selected>T-Shirt: M</option>
+                        <option value="L">T-Shirt: L</option>
+                        <option value="XL">T-Shirt: XL</option>
+                        <option value="XXL">T-Shirt: XXL</option>
+                    </select>
+                    <select id="runtime-selector">
+                        <option value="wasmedge">WASMEdge Cycle</option>
+                        <option value="wasmer">Wasmer Cycle</option>
+                        <option value="wasmtime">Wasmtime Cycle</option>
+                    </select>
+                    <button id="join-game">Start Single Player</button>
+                    <button id="leave-game" disabled>Reset Game</button>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="panel-title">Leaderboard</div>
+                    <div class="leaderboard">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Score</th>
+                                    <th>Runtime</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <!-- Leaderboard entries -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="panel-title">Controls</div>
+                    <div style="font-size: 14px; line-height: 1.4;">
+                        <p><strong>Movement:</strong></p>
+                        <p>Use arrow keys or WASD to move your light cycle</p>
+                        <p><strong>Camera:</strong></p>
+                        <p>Press <kbd style="background: #001122; border: 1px solid #00ccff; padding: 2px 4px; border-radius: 3px;">C</kbd> to toggle camera view</p>
+                        <p><em>Overview mode:</em> Standard controls</p>
+                        <p><em>First-person mode:</em> Relative controls</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+        <script src="game.js?v=1730485608"></script>
+</body>
+</html>

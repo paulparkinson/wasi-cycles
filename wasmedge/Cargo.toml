@@ -1,0 +1,35 @@
+[package]
+name = "wasmedge_server_and_client_https"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+publish = false
+
+# WasmEdge HTTPS patches - proven working from wasmedge_hyper_demo
+[patch.crates-io]
+tokio = { git = "https://github.com/second-state/wasi_tokio.git", branch = "v1.36.x" }
+socket2 = { git = "https://github.com/second-state/socket2.git", branch = "v0.5.x" }
+hyper = { git = "https://github.com/second-state/wasi_hyper.git", branch = "v0.14.x" }
+
+[dependencies]
+# WasmEdge HTTPS support - using proven working approach from wasmedge_hyper_demo
+tokio = { version = "1", features = ["rt", "macros", "net", "time", "io-util"] }
+hyper = { version = "0.14", features = ["full"] }
+hyper-rustls = { version = "0.25", default-features = false, features = [
+    "http1",
+    "tls12",
+    "logging", 
+    "ring",
+    "webpki-tokio",
+] }
+rustls = { version = "0.22", default-features = false }
+webpki-roots = "0.26.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+base64 = "0.22"
+lazy_static = "1.4"
+
+# reduce wasm binary size
+[profile.release]
+lto = true
+strip = "symbols"

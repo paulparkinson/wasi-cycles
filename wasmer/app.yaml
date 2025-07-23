@@ -1,0 +1,5 @@
+name: my-new-python-app
+app_id: da_R4qIGtmUAzWY
+owner: paulparkinson
+package: '.'
+kind: wasmer.io/App.v0

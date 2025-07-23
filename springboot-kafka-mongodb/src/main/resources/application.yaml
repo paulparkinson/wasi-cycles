@@ -1,0 +1,65 @@
+# Spring Boot Application Configuration for WasiCycles Game
+server:
+  port: 8050
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: springboot-kafka-mongodb-wasicycles
+
+  # Disable auto-configuration for MongoDB and Kafka since we're using custom configurations
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  # MongoDB Configuration - DISABLED for OKafka testing
+  # MongoDB is causing connection issues, disabling for now
+  # data:
+  #   mongodb:
+  #     uri: mongodb://admin:mypassword*@IJ1MINEWLPE-MYDB.adb.eu-frankfurt-1.oraclecloudapps.com:27017/admin?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true
+  #     database: admin
+
+# Oracle OKafka Configuration - Native Oracle Kafka client
+okafka:
+  oracle:
+    service-name: IJ1MINELPE_financialdb_high
+    tns-admin: /Users/pparkins/Downloads/Wallet_mydb
+    username: ADMIN
+    password: mypassword
+    tns-alias: mydb_high
+
+# Application-specific configuration
+app:
+  kafka:
+    topic:
+      game-events: WASICYCLES_GAME_EVENTS
+      user-events: WASICYCLES_USER_EVENTS
+      notifications: WASICYCLES_NOTIFICATIONS
+    consumer:
+      group-id: wasicycles-springboot-group
+
+  oracle:
+    ords:
+      base-url: https://ijminewlpe-mydb.adb.eu-frankfurt-1.oraclecloudapps.com/ords/admin/_sdw
+      username: ADMIN
+      password: Welcome12345*
+
+    # TxEventQ REST API Configuration
+    txeventq:
+      base-url: https://ijminewlpe-mydb.adb.eu-frankfurt-1.oraclecloudapps.com/ords/admin/_/db-api/stable/database/txeventq
+      clusters-url: https://ijminewlpe-mydb.adb.eu-frankfurt-1.oraclecloudapps.com/ords/admin/_/db-api/stable/database/txeventq/clusters/IJMINEWPWLPE_MYDB
+      username: ADMIN
+      password: mypassword
+
+# Logging Configuration
+logging:
+  level:
+    com.example.springbootkafkamongodb: INFO
+    org.springframework.kafka: INFO
+    org.springframework.data.mongodb: INFO
+    org.oracle.okafka: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

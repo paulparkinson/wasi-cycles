@@ -1,0 +1,20 @@
+[package]
+name = "http-server"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+waki = "0.4.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1.10.2"
+
+# reduce wasm binary size
+[profile.release]
+lto = true
+strip = "symbols"
